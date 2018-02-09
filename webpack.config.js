@@ -6,6 +6,13 @@ const modules = {
 		test: /\.js$/,
 		exclude: /node-modules/,
 		loaders: ["babel-loader"]
+	}, {
+		test: /\.css/,
+		loaders: ["style-loader", "css-loader"]
+	},
+	{ 
+		test: /\.(jpe?g|gif|png|svg|woff|ttf|wav|mp3)$/, 
+		loader: "file-loader" 
 	}]
 };
 
@@ -27,8 +34,9 @@ const client = {
 		client: "./src/client/index.js"
 	},
 	target: "web",
+	devtool: "source-map",
 	output: {
-		filename: "[name].js",
+		filename: "[namespace].js",
 		path: path.resolve(__dirname, 'dist/public')
 	},
 	module: modules,
