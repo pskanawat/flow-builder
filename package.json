@@ -23,6 +23,7 @@
   "dependencies": {
     "d3": "^4.12.2",
     "express": "^4.16.2",
+    "lodash": "^4.17.5",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "rimraf": "^2.6.2",
