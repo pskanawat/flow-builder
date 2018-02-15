@@ -1,6 +1,4 @@
 import React from "react";
-import { selectAll } from 'd3-selection'
-import { drag } from 'd3-drag'
 import FlowBuilder from "./flow-builder";
 
 class Designer extends React.Component {
@@ -21,18 +19,8 @@ class Designer extends React.Component {
 		console.log("Drag start", arguments);
 	}
 
-	onDrag(data) {
-		//d3.event.sourceEvent.stopPropagation();
-		console.log("Dragging", this);
-	}
-
 	onDragEnd() {
 		console.log("Drag End", arguments);
-	}
-
-	componentDidMount() {
-		const dragFn = drag().on("drag", this.onDrag);
-		selectAll("rect").call(dragFn);
 	}
 
 	render() {
