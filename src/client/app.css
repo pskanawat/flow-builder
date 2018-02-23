@@ -89,3 +89,14 @@ html, body, #app-container, .app-wrapper {
 	flex: 3;
 	overflow: auto;
 }
+
+
+
+/* Node Css start**/
+.node-group .node-ports {
+	fill: transparent;
+}
+.node-group:hover .node-ports {
+	fill: #ff0000;
+}
+/* NOde css end*/
