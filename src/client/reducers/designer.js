@@ -2,7 +2,7 @@ import _ from "lodash"
 
 const getData = () => {
 	const data = {
-			nodes: [
+			/*nodes: [
 				{
 					id: "node-1",
 					x: 50,
@@ -24,7 +24,29 @@ const getData = () => {
 					x: 190,
 					y: 250	
 				}
-			],
+			],*/
+			nodes: {
+				"node-1": {
+					x: 50,
+					y: 50
+				},
+				"node-2": {
+					x: 250,
+					y: 250
+				},
+				"node-3": {
+					x: 450,
+					y: 350
+				},
+				"node-4": {
+					x: 150,
+					y: 450
+				},
+				"node-5": {
+					x: 190,
+					y: 250
+				}
+			},
 			edges: [
 				{
 					id: "edge-1",
@@ -55,45 +77,34 @@ const getData = () => {
 
 		}
 
-		let nodePositions = _.reduce(data.nodes, (mapObj, node) => {
-			mapObj[node.id] = {
-				x: node.x,
-				y: node.y
-			}
-			return mapObj;
-		}, {});
+		return data;
+}
 
-		let nodeToEdgeMap = _.reduce(data.edges, (obj, edge) => {
-			nodePositions[edge.source] = nodePositions[edge.source] || {};
-			nodePositions[edge.source]["edges"] = nodePositions[edge.source]["edges"] || [];
-			nodePositions[edge.source]["edges"].push(edge);
-			nodePositions[edge.target] = nodePositions[edge.target] || {};
-			nodePositions[edge.target]["edges"] = nodePositions[edge.target]["edges"] || [];
-			nodePositions[edge.target]["edges"].push(edge)
-		}, {});
-
-		let initState = _.assign({}, data, 
-			{ 
-				nodeMap: nodePositions
-			}, 
-			{
-				style: {
-					"markerEnd": 'url("#end-arrow")'
-				}
-			}
-		);
-		return initState;
+const updateNode =  (state, data) => {
+	 state.nodes[data.id] = data.node;
+	 return state;
 }
 
 const data = (state = getData(), action ) => {
 	switch(action.type) {
 		case 'ADD_NODE':
 			return Object.assign({}, state, {
-				nodes: [
-					...state.nodes,	
-					action.node
-				]
+				nodes: {...state.nodes, ...action.node}
 			});
+		case 'ADD_EDGE':
+			return Object.assign({}, state, {
+				edges: [...state.edges, action.edge]
+			});
+		case 'DELETE_NODE':
+			let newState= Object.assign({}, state);
+			delete newState.nodes[action.node.id];
+			newState.edges = newState.edges.filter((edge)=>{
+				let ids = action.node.edges.map((edge)=>edge.id);
+				return ids.indexOf(edge.id) == -1
+			})
+			return newState;
+		case 'UPDATE_NODE':
+			return updateNode(state, action)
 		default:
 			return state
 	}

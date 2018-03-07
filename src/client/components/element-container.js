@@ -4,7 +4,12 @@ import ImageSrc from "../images/event.svg";
 
 export default () => {
 	function onDrag(ev) {
+
+		//let dragIcon = document.createElement("img");
+		//dragIcon.src = ImageSrc;
+
 		ev.dataTransfer.setData("text", ev.target.id);
+		//ev.dataTransfer.setDragImage(dragIcon, 20, 20);
 	}
 	return (
 		<section className="element-container">

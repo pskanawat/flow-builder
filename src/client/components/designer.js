@@ -1,5 +1,5 @@
 import { connect } from "react-redux"
-import { addNode } from "../actions"
+import { addNode, addEdge } from "../actions"
 import FlowBuilder from "./flow-builder"
 
 const mapStateToProps = state => {
@@ -8,11 +8,23 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    onNodeAdd: id => {
-      dispatch({
-		type: "ADD_NODE",
-		node: addNode(id)
-		});
+    onNodeAdd: pos => {
+      dispatch(addNode(pos));
+    },
+    onAddEdge: (source, target) => {
+    	dispatch(addEdge(source, target))
+    },
+    onNodeClick: (node) => {
+    },
+    onNodeDelete: (node) => {
+    	dispatch({type: "DELETE_NODE", node});
+    },
+    updateNode: (id, node) => {
+    	dispatch({
+    		type: "UPDATE_NODE",
+    		id,
+    		node
+    	})
     }
   }
 }

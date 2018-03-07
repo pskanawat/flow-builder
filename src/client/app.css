@@ -93,10 +93,28 @@ html, body, #app-container, .app-wrapper {
 
 
 /* Node Css start**/
-.node-group .node-ports {
+.node-group .body {
+	fill: #E1FFE3;
+}
+.node-group .port-group {
 	fill: transparent;
 }
-.node-group:hover .node-ports {
-	fill: #ff0000;
+.node-group:hover .port-group {
+	fill: #e0e0e0;
 }
+
+.node-group .del-group {
+	fill: none;
+}
+.node-group:hover .del-group {
+	fill: #f44336;
+}
+
+.edge-group .del-group {
+	fill: none;
+}
+.edge-group:hover .del-group {
+	fill: #f44336;
+}
+
 /* NOde css end*/

@@ -3,50 +3,77 @@ import _ from "lodash";
 
 import { select, selectAll } from 'd3-selection'
 import { drag } from 'd3-drag'
-import {event as currentEvent} from 'd3';
+import {event as currentEvent, mouse} from 'd3';
 import Node from './node'
+import Edge from './edge'
 
 export default class FlowBuilder extends React.Component {
 	constructor(props) {
 		super(props);
-		this.currentDiff = {
-			x: 0,
-			y: 0
-		};
+		this.nextUniqueId = 0;
+		this.onDrop = this.onDrop.bind(this);
+		this.state = this.addNodeMap(props);
+
+		this.uiState = {
+			mouseOverNode: null,
+			dimestion: {
+				width: 100,
+				height:100
+			}
+		}
+
+		this.style = {
+			"markerEnd": 'url("#end-arrow")'
+		}
 	}
 
 	onNodeGroupDragStart(self) {
 		let draggedElem = this;
-		self.currentDiff = {
-			x: currentEvent.x - +draggedElem.dataset.x,
-			y: currentEvent.y - +draggedElem.dataset.y
-		}
-		console.log("currentEvent", currentEvent.x, currentEvent.y)
 	}
 
 	onNodeGroupDrag(self, d, i) {
 		let draggedElem = this;
-		console.log("Dragging", draggedElem);
 		/**
 		 * Finding Edges for moved node from state.
 		 */
-		let edges = _.get(self.props, `nodeMap[${draggedElem.dataset.id}]["edges"]`, []);
+		let edges = _.get(self.state, `nodeMap[${draggedElem.dataset.id}]["edges"]`, []);
 		let drggedElemNewPos = {
-			x: currentEvent.x - self.currentDiff.x,
-			y: currentEvent.y - self.currentDiff.y
+			x: (+draggedElem.dataset.x) + currentEvent.dx,
+			y: (+draggedElem.dataset.y) + currentEvent.dy
 		}
-		select(draggedElem).attr("transform", `translate(${drggedElemNewPos.x}, ${drggedElemNewPos.y})`)
+
+		/*select(draggedElem).attr("transform", `translate(${drggedElemNewPos.x}, ${drggedElemNewPos.y})`)
 			.attr("data-x",drggedElemNewPos.x)
-			.attr("data-y",drggedElemNewPos.y);
-		edges.forEach((edge) => {
+			.attr("data-y",drggedElemNewPos.y);*/
+
+		let newNode = {};
+		newNode[draggedElem.dataset.id] = drggedElemNewPos;
+
+		self.setState({
+			nodes: {
+				...self.state.nodes,
+				...newNode
+			}
+		});
+		
+		/*edges.forEach((edge) => {
 			let edgeElem = select("[data-id="+edge.id+"]");
 			if(edge.source === draggedElem.dataset.id) {
 				edgeElem.attr("d", self.generatePathFromEdge(edgeElem.attr("d"), drggedElemNewPos, null));
 			} else {
 				edgeElem.attr("d", self.generatePathFromEdge(edgeElem.attr("d"), null, drggedElemNewPos));
 			}
-		});
-		console.log("currentEvent", currentEvent.x, currentEvent.y)
+
+		});*/
+	}
+
+	onNodeGroupDragEnd(self) {
+		let draggedElem = this;
+		if(typeof(self.props.updateNode) == "function") {
+			self.props.updateNode(draggedElem.dataset.id, { x: +draggedElem.dataset.x, y: +draggedElem.dataset.y});
+		} else {
+			console.warn("Expects props.updateNodeState as a function in FlowBuilder");
+		}
 	}
 
 	onPortDragStart() {
@@ -55,51 +82,84 @@ export default class FlowBuilder extends React.Component {
 	}
 	onPortDrag(self) {
 		let portGroup = this;
-		console.log('Arraw', currentEvent.dx, currentEvent.dy);
 		let srcPos = {
 			x: +portGroup.parentElement.dataset.x,
 			y: +portGroup.parentElement.dataset.y
 		}, targetPos = {
-			x: srcPos.x + currentEvent.x,
-			y: srcPos.y + currentEvent.y
+			x: srcPos.x + currentEvent.x - (self.uiState.dimestion.width/2),
+			y: srcPos.y + currentEvent.y - (self.uiState.dimestion.height/2)
 		}
-		select(".temp-path").attr("d", self.generatePath(srcPos, targetPos))
+		let {x1, y1, x2, y2} = self.getLineCord(srcPos, targetPos);
+		select(".temp-path").attr("d", `M ${x1} ${y1} ${x2} ${y2}`)
 	}
 
-	connectNodes() {
-		
+	onPortDragEnd(self) {
+		let portGroup = this;
+		//Not doing anything when dragged edge ends up no where.
+		if(self.uiState.mouseOverNode) {		
+			console.log("PORT Drag End",portGroup.parentElement.dataset.id, self.uiState.mouseOverNode.dataset.id)
+			if(portGroup.parentElement.dataset.id !== self.uiState.mouseOverNode.dataset.id) {
+				self.addEdge(portGroup.parentElement.dataset.id, self.uiState.mouseOverNode.dataset.id);
+			}
+		}
+		select(".temp-path").attr("d", "M 0 0 0 0");
 	}
 
 	generatePathFromEdge(path, source, target) {
 		if(source) {
 			path = path.split(" ");
-			path[1] = +source.x+50
-			path[2] = +source.y+25
+			path[1] = +source.x+(this.uiState.dimestion.width/2)
+			path[2] = +source.y+(this.uiState.dimestion.height/2)
 			return path.join(" ");
 		} else {
 			path = path.split(" ");
-			path[3] = +target.x+50
-			path[4] = +target.y+25
+			path[3] = +target.x+(this.uiState.dimestion.width/2)
+			path[4] = +target.y+(this.uiState.dimestion.height/2)
 			return path.join(" ");
 		}
 	}
 
-	generatePath(source, target) {
-		return "M " + (+source.x+50) + " " + (+source.y+25) + " " + (+target.x+50) + " " + (+target.y+25);
+	getLineCord(source, target) {
+		return {
+			x1: +source.x+ (this.uiState.dimestion.width/2),
+			y1: +source.y+(this.uiState.dimestion.height/2),
+			x2: +target.x+(this.uiState.dimestion.width/2),
+			y2: +target.y+(this.uiState.dimestion.height/2)
+		}
+	}
+
+	onMouseEvent(self, isMouseOver) {
+		if(isMouseOver) {
+			self.uiState.mouseOverNode = this;
+		} else {
+			self.uiState.mouseOverNode = null;
+		}
 	}
 
 	componentDidMount() {
-		const dragFn = drag().on("start", _.partial(this.onNodeGroupDragStart, this)).on("drag", _.partial(this.onNodeGroupDrag, this));
-		selectAll(".node-group").call(dragFn);
-		const dragArrawFn = drag().on("start", _.partial(this.onPortDragStart, this)).on("drag", _.partial(this.onPortDrag, this));
-		selectAll(".node-ports").call(dragArrawFn);
+		this.attachEvents();
 	}
 
 	componentDidUpdate() {
-		const dragFn = drag().on("start", _.partial(this.onNodeGroupDragStart, this)).on("drag", _.partial(this.onNodeGroupDrag, this));
-		selectAll(".node-group").call(dragFn);
-		const dragArrawFn = drag().on("start", _.partial(this.onPortDragStart, this)).on("drag", _.partial(this.onPortDrag, this));
-		selectAll(".node-ports").call(dragArrawFn);
+		this.attachEvents();	
+	}
+
+	attachEvents() {
+		let self = this;
+		const dragFn = drag()
+						.on("start", _.partial(this.onNodeGroupDragStart, this))
+						.on("drag", _.partial(this.onNodeGroupDrag, this))
+						.on("end", _.partial(this.onNodeGroupDragEnd, this));
+		selectAll(".node-group")
+			.on("mouseover", _.partial(this.onMouseEvent, this, true))
+			.on("mouseout", _.partial(this.onMouseEvent, this, false)).call(dragFn);
+		const dragArrawFn = drag()
+							.on("start", _.partial(this.onPortDragStart, this))
+							.on("drag", _.partial(this.onPortDrag, this))
+							.on("end", _.partial(this.onPortDragEnd, this));
+		selectAll(".port-group").call(dragArrawFn);
+
+
 	}
 
 	onDragOver(ev) {
@@ -109,8 +169,11 @@ export default class FlowBuilder extends React.Component {
 	onDrop(ev) {
 		ev.preventDefault();
 		var data = ev.dataTransfer.getData("text");
-		console.dir(data);
-		//ev.target.appendChild(document.getElementById(data));
+		console.log(ev.clientX, ev.clientY);
+		this.addNode(data, {
+			x: ev.clientX - 257,
+			y: ev.clientY - 51
+		});
 	}
 
 	onDragEnd() {
@@ -121,10 +184,102 @@ export default class FlowBuilder extends React.Component {
 		console.log("Clicked")
 	}
 
+	addNode(data, pos) {
+		let nodeObj = {};
+		nodeObj[`fb-elem-id-${this.nextUniqueId++}`] = {
+			...pos,
+			width: this.uiState.dimestion.width,
+			height: this.uiState.dimestion.height
+		}
+
+		let newState = Object.assign ({}, this.state, {
+			nodes: {
+				...this.state.nodes,
+				...nodeObj
+			}
+		});
+
+		this.setState(this.addNodeMap(newState));
+		//this.props.onNodeAdd && this.props.onNodeAdd();
+	}
+
+	addEdge(src, tgt) {
+		let newState = Object.assign ({}, this.state, {
+			edges: [
+				...this.state.edges,
+				{
+					id: `fb-elem-id-${this.nextUniqueId++}`,
+					source: src,
+					target: tgt
+				}
+			]
+		});
+		this.setState(this.addNodeMap(newState));
+		//this.props.onAddEdge && this.props.onAddEdge();
+	}
+
+	deleteNode(ev) {
+		let id = ev.currentTarget.parentElement.dataset.id;
+		let deletedNode = {
+			id: id,
+			edges: this.state.nodeMap[id]["edges"]
+		}
+		let newState= Object.assign({}, this.state);
+			delete newState.nodes[deletedNode.id];
+			//Filter the Edges only when there are edges for the Node.
+			if(deletedNode.edges){	
+				newState.edges = newState.edges.filter((edge)=>{
+					let ids = deletedNode.edges.map((edge)=>edge.id);
+					return ids.indexOf(edge.id) == -1
+				});
+			}
+		this.setState(this.addNodeMap(newState));
+		//this.props.onNodeDelete && this.props.onNodeDelete();
+	}
+
+	deleteEdge(ev) {
+		let id = ev.currentTarget.parentElement.dataset.id;
+		let newState= Object.assign({}, this.state);
+			newState.edges = newState.edges.filter((edge)=>{
+				return edge.id !== id;
+			});
+		this.setState(this.addNodeMap(newState));
+		//this.props.onEdgeDelete && this.props.onEdgeDelete();
+	}
+
+	addNodeMap(nextProps) {
+		let props = nextProps ? nextProps: this.props;
+		let nodeMap = _.reduce(props.nodes, (mapObj, node, key) => {
+			mapObj[key] = {
+				x: node.x,
+				y: node.y
+			}
+			return mapObj;
+		}, {});
+
+		let nodeToEdgeMap = _.reduce(props.edges, (obj, edge) => {
+			nodeMap[edge.source] = nodeMap[edge.source] || {};
+			nodeMap[edge.source]["edges"] = nodeMap[edge.source]["edges"] || [];
+			nodeMap[edge.source]["edges"].push(edge);
+			nodeMap[edge.target] = nodeMap[edge.target] || {};
+			nodeMap[edge.target]["edges"] = nodeMap[edge.target]["edges"] || [];
+			nodeMap[edge.target]["edges"].push(edge)
+		}, {});
+		return {
+			...props,
+			nodeMap
+		};
+	}
+
+	componentWillReceiveProps(nextProps) {
+		this.setState(this.addNodeMap(nextProps));
+	}
+
+
 	render() {
 		return (
 			<section className="designer-container">
-				<svg width="1200" height="1200" onDrop={this.props.onNodeAdd} onDragOver={this.onDragOver}>				
+				<svg width="1200" height="1200" onDrop={this.onDrop} onDragOver={this.onDragOver}>				
 					<g>
 						<defs>
 							<marker id="end-arrow" viewBox="0 -5 10 10" refX="70" markerWidth="4" markerHeight="4" orient="auto">
@@ -133,11 +288,23 @@ export default class FlowBuilder extends React.Component {
 							<marker id="mark-end-arrow" viewBox="0 -5 10 10" refX="7" markerWidth="3.5" markerHeight="3.5" orient="auto">
 								<path d="M0,-5L10,0L0,5"></path>
 							</marker>
+							<filter id="dropShadowv-21195304394" filterUnits="objectBoundingBox" x="-1" y="-1" width="3" height="3"><feDropShadow stdDeviation="1" dx="0" dy="1.35" floodColor="black" floodOpacity="0.2"></feDropShadow></filter>
 						</defs>
 						<g className="flow-group">
-							<path className="temp-path" data-id="temp-path" key="temp-path" d="M 0 0 10 10" strokeWidth="3" stroke="#00ff00" style={this.props.style}></path>
-							{this.props.edges.map((edge) => <path data-id={edge.id} key={edge.id} d={this.generatePath(this.props.nodeMap[edge.source], this.props.nodeMap[edge.target])} strokeWidth="3" stroke="#ccc" style={this.props.style}></path>)}
-							{this.props.nodes.map((node) => <Node key={node.id} id={node.id} x={node.x} y={node.y} width={100} height={50} onClick={this.onClick} />)}
+							<path className="temp-path" 
+							data-id="temp-path" key="temp-path" d="M 0 0 0 0" strokeWidth="3" stroke="#A6A6A6" 
+							style={this.style}></path>
+							{this.state.edges.map((edge) => <Edge key={edge.id} 
+								id={edge.id} {...this.getLineCord(this.state.nodes[edge.source], this.state.nodes[edge.target])} 
+								onDelete={(ev)=>this.deleteEdge(ev)} />)}
+							{_.map(this.state.nodes, 
+								(node, id) => <Node key={id} id={id} 
+								x={node.x} 
+								y={node.y} 
+								width={this.uiState.dimestion.width} 
+								height={this.uiState.dimestion.height} 
+								onClick={this.state.onNodeClick} 
+								onDelete={(ev)=>this.deleteNode(ev)} />)}
 						</g>
 					</g>	
 				</svg>
