@@ -1,6 +1,8 @@
 let path = require('path');
 let nodeExternals = require('webpack-node-externals');
 const HtmlWebPackPlugin = require('html-webpack-plugin');
+const {GenerateSW} = require('workbox-webpack-plugin');
+
 const modules = {
 	loaders: [{
 		test: /\.js$/,
@@ -36,14 +38,15 @@ const client = {
 	target: "web",
 	devtool: "source-map",
 	output: {
-		filename: "[namespace].js",
+		filename: "main.js",
 		path: path.resolve(__dirname, 'dist/public')
 	},
 	module: modules,
 	plugins: [
 		new HtmlWebPackPlugin({
 			template: "src/client/index.html"
-		})
+		}),
+		new GenerateSW()
 	]
 };
 

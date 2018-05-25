@@ -1,5 +1,10 @@
 import React from "react";
+import styled from 'styled-components'
 import FlowBuilder from "./flow-builder";
+const DesignerContainer = styled.section`
+	flex: 3;
+	overflow: auto;
+`; 
 
 class Designer extends React.Component {
 	constructor(props){
@@ -25,11 +30,11 @@ class Designer extends React.Component {
 
 	render() {
 		return (
-			<section className="designer-container">
+			<DesignerContainerDesignerContainer>
 				<svg width={this.props.width} height={this.props.height} onDrop={this.onDrop} onDragOver={this.onDragOver}>
 					<FlowBuilder />
 				</svg>
-			</section>
+			</DesignerContainer>
 		)
 	}
 }

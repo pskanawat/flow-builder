@@ -15,7 +15,7 @@ const Edge = ({ id, x1, y1, x2, y2, onClick, onDelete }) => {
 		labelY = (1-labelT)*y1 + labelT*y2;
 	return (
 		<g className="edge-group" data-id={id}>			
-			<path d={`M ${x1} ${y1} ${x2} ${y2}`} strokeWidth="3" stroke="#ccc" style={style}></path>
+			<path d={`M ${x1} ${y1} ${x2} ${y2}`} strokeWidth="2" stroke="#e2e2e3" style={style}></path>
 			<g className="label-group" transform={`translate(${labelX}, ${labelY})`}>
 				<rect className="edge-bg" x="-5" y="-13" height="16" width="60" fill="#fff"></rect>
 				<text className="edge-title">Edge title</text>

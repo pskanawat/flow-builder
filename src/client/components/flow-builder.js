@@ -5,7 +5,9 @@ import { select, selectAll } from 'd3-selection'
 import { drag } from 'd3-drag'
 import {event as currentEvent, mouse} from 'd3';
 import Node from './node'
+import NodeMulti from './node-multi'
 import Edge from './edge'
+import Navigator from './navigator'
 
 export default class FlowBuilder extends React.Component {
 	constructor(props) {
@@ -36,7 +38,7 @@ export default class FlowBuilder extends React.Component {
 		/**
 		 * Finding Edges for moved node from state.
 		 */
-		let edges = _.get(self.state, `nodeMap[${draggedElem.dataset.id}]["edges"]`, []);
+		//let edges = _.get(self.state, `nodeMap[${draggedElem.dataset.id}]["edges"]`, []);
 		let drggedElemNewPos = {
 			x: (+draggedElem.dataset.x) + currentEvent.dx,
 			y: (+draggedElem.dataset.y) + currentEvent.dy
@@ -99,6 +101,7 @@ export default class FlowBuilder extends React.Component {
 		if(self.uiState.mouseOverNode) {		
 			console.log("PORT Drag End",portGroup.parentElement.dataset.id, self.uiState.mouseOverNode.dataset.id)
 			if(portGroup.parentElement.dataset.id !== self.uiState.mouseOverNode.dataset.id) {
+				//TO DO: If the edge already exist for same src and target then skip
 				self.addEdge(portGroup.parentElement.dataset.id, self.uiState.mouseOverNode.dataset.id);
 			}
 		}
@@ -150,14 +153,14 @@ export default class FlowBuilder extends React.Component {
 						.on("start", _.partial(this.onNodeGroupDragStart, this))
 						.on("drag", _.partial(this.onNodeGroupDrag, this))
 						.on("end", _.partial(this.onNodeGroupDragEnd, this));
-		selectAll(".node-group")
+		selectAll(".flow-group .node-group")
 			.on("mouseover", _.partial(this.onMouseEvent, this, true))
 			.on("mouseout", _.partial(this.onMouseEvent, this, false)).call(dragFn);
 		const dragArrawFn = drag()
 							.on("start", _.partial(this.onPortDragStart, this))
 							.on("drag", _.partial(this.onPortDrag, this))
 							.on("end", _.partial(this.onPortDragEnd, this));
-		selectAll(".port-group").call(dragArrawFn);
+		selectAll(".flow-group .port-group").call(dragArrawFn);
 
 
 	}
@@ -180,8 +183,9 @@ export default class FlowBuilder extends React.Component {
 		console.log("Drag End", arguments);
 	}
 
-	onClick() {
-		console.log("Clicked")
+	onNodeClick(ev) {
+		let id = _.get(ev.target, "parentElement.dataset.id");
+		this.props.onNodeClick && this.props.onNodeClick({id, ...this.state.nodeMap[id]})
 	}
 
 	addNode(data, pos) {
@@ -283,7 +287,7 @@ export default class FlowBuilder extends React.Component {
 					<g>
 						<defs>
 							<marker id="end-arrow" viewBox="0 -5 10 10" refX="70" markerWidth="4" markerHeight="4" orient="auto">
-								<path d="M0,-5L10,0L0,5" stroke="#ccc" fill="#ccc"></path>
+								<path d="M0,-5L10,0L0,5" stroke="#e2e2e3" fill="#e2e2e3"></path>
 							</marker>
 							<marker id="mark-end-arrow" viewBox="0 -5 10 10" refX="7" markerWidth="3.5" markerHeight="3.5" orient="auto">
 								<path d="M0,-5L10,0L0,5"></path>
@@ -292,7 +296,7 @@ export default class FlowBuilder extends React.Component {
 						</defs>
 						<g className="flow-group">
 							<path className="temp-path" 
-							data-id="temp-path" key="temp-path" d="M 0 0 0 0" strokeWidth="3" stroke="#A6A6A6" 
+							data-id="temp-path" key="temp-path" d="M 0 0 0 0" strokeWidth="1" stroke="#e2e2e3" 
 							style={this.style}></path>
 							{this.state.edges.map((edge) => <Edge key={edge.id} 
 								id={edge.id} {...this.getLineCord(this.state.nodes[edge.source], this.state.nodes[edge.target])} 
@@ -303,11 +307,12 @@ export default class FlowBuilder extends React.Component {
 								y={node.y} 
 								width={this.uiState.dimestion.width} 
 								height={this.uiState.dimestion.height} 
-								onClick={this.state.onNodeClick} 
-								onDelete={(ev)=>this.deleteNode(ev)} />)}
+								onClick={(ev) => this.onNodeClick(ev)} 
+								onDelete={(ev)=>this.deleteNode(ev)} ports={5} />)}
 						</g>
 					</g>	
 				</svg>
+				<Navigator nodes={this.state.nodes} width={this.uiState.dimestion.width} height={this.uiState.dimestion.height} />
 			</section>
 		);
 	}

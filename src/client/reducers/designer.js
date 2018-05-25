@@ -2,29 +2,6 @@ import _ from "lodash"
 
 const getData = () => {
 	const data = {
-			/*nodes: [
-				{
-					id: "node-1",
-					x: 50,
-					y: 50
-				}, {
-					id: "node-2",
-					x: 250,
-					y: 250	
-				}, {
-					id: "node-3",
-					x: 450,
-					y: 350	
-				}, {
-					id: "node-4",
-					x: 150,
-					y: 450	
-				}, {
-					id: "node-5",
-					x: 190,
-					y: 250	
-				}
-			],*/
 			nodes: {
 				"node-1": {
 					x: 50,

@@ -1,6 +1,25 @@
 import WebServer from './web-server';
 
 let webServer = new WebServer();
+//let jwt = require('express-jwt');
+//let Authn = require("authn-user");
+/*let authn = Authn({
+  "clientId": "journey-ui",
+  "clientSecret": "iDlPOMLM4uYuiLYU1xpEYLykTWqGdj1s",  
+  "authnUrl": "https://authn-preprod.nm.flipkart.com/",
+  "serviceUrl": "http://localhost:8000/",
+  "callbackUrl": "/login_callback", //optional, default value /login_callback
+  "logoutUrl": "/logout",           //optional, default value /logout 
+  "authEnabled": true               //optional, default value true
+});*/
+
+/* initialize express app */
+
+//webServer.addM(jwt({ secret: 'my-secret', requestProperty: "session"}).unless({path: ['/token']}));
+
+//webServer.addM(authn.ensureAuthentictionFilter);
+//webServer.addM(authn.callbackFilter);
+//webServer.addM(authn.logoutFilter);
 
 webServer
 	.start()

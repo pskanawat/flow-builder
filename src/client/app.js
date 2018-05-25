@@ -1,10 +1,9 @@
-import React, {Component} from "react";
-import ElementContainer from "./components/element-container.js";
-//import DesignerContainer from "./components/designer-container";
-import Designer from "./components/designer";
-import ErrorBoundary from "./components/error-boundaries";
+import React, {Component} from "react"
 
-import "./app.css";
+import "./app.css"
+
+import Header from "./components/header"
+import Content from "./components/content"
 
 export default class App extends Component {
 	constructor(props) {
@@ -14,13 +13,8 @@ export default class App extends Component {
 	render() {
 		return (
 			<div className="app-wrapper">
-				<header className="app-header"></header>
-				<section className="app-body">
-					<ElementContainer/>
-					<ErrorBoundary>
-						<Designer width="3000" height="1200"/>
-					</ErrorBoundary>
-				</section>
+				<Header />			
+				<Content />
 			</div>
 			);
 	}

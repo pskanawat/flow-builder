@@ -1,9 +1,19 @@
 const express = require('express');
+const path = require('path');
 
 export default class WebServer {
 	constructor() {
 		this.app = express();
 		this.app.use(express.static('dist/public'));
+		this.app.get("/user", function(req, res) {
+		  res.send(req.session.user);    // get user object
+		})
+		this.app.get("/token", function(req, res) {
+		  res.send(req.session);    // get user object
+		})
+		this.app.get('*', function (request, response){
+		  response.sendFile(process.env.PWD + "/dist/public/index.html");
+		})
 	}
 
 	start(port) {
@@ -27,5 +37,9 @@ export default class WebServer {
 				reject(e)
 			}
 		});
+	}
+
+	addM(middleware) {
+		this.app.use(middleware);
 	}
 }
