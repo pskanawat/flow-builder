@@ -2,11 +2,11 @@ import WebServer from './web-server';
 
 let webServer = new WebServer();
 //let jwt = require('express-jwt');
-//let Authn = require("authn-user");
+//let Authn = require("authn-lib");
 /*let authn = Authn({
   "clientId": "journey-ui",
-  "clientSecret": "iDlPOMLM4uYuiLYU1xpEYLykTWqGdj1s",  
-  "authnUrl": "https://authn-preprod.nm.flipkart.com/",
+  "clientSecret": "",  
+  "authnUrl": "",
   "serviceUrl": "http://localhost:8000/",
   "callbackUrl": "/login_callback", //optional, default value /login_callback
   "logoutUrl": "/logout",           //optional, default value /logout 
